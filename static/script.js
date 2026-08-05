@@ -121,9 +121,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const hf_client = await client("Manoj8179/Neural-Cal");
             
             // Send the canvas image to the /master_execution_flow endpoint
-            const result = await hf_client.predict("/master_execution_flow", [
-                { "background": null, "composite": base64Image, "layers": [] }
-            ]);
+            const result = await hf_client.predict("/master_execution_flow", {
+                sketch: { "background": null, "composite": base64Image, "layers": [] }
+            });
 
             const data = {
                 svg: result.data[0],
