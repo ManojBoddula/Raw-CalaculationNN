@@ -1,4 +1,4 @@
-import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+import { client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("sketchpad");
@@ -83,29 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
         statusLog.style.display = "none";
     });
 
-    // Fetch Metrics on Load
-    fetch("/metrics")
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById("v-train-acc").innerText = data.v_train_acc;
-            document.getElementById("v-test-acc").innerText = data.v_test_acc;
-            document.getElementById("m-train-loss").innerText = data.m_train_loss;
-            document.getElementById("m-test-loss").innerText = data.m_test_loss;
-            
-            const vPlot = document.getElementById("vision-plot");
-            const mPlot = document.getElementById("math-plot");
-            
-            if (data.vision_plot && data.vision_plot.length > 50) {
-                vPlot.src = data.vision_plot;
-                vPlot.style.display = "block";
-            }
-            if (data.math_plot && data.math_plot.length > 50) {
-                mPlot.src = data.math_plot;
-                mPlot.style.display = "block";
-            }
-        })
-        .catch(err => console.error("Error fetching metrics:", err));
-
     // Compute Button
     computeBtn.addEventListener("click", async () => {
         const base64Image = canvas.toDataURL("image/png");
@@ -122,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Send the canvas image to the /master_execution_flow endpoint
             const result = await hf_client.predict("/master_execution_flow", {
-                sketch: { "background": null, "composite": base64Image, "layers": [] }
+                sketch: { "background": null, "composite": handle_file(base64Image), "layers": [] }
             });
 
             const data = {
