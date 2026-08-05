@@ -14,8 +14,6 @@ import matplotlib.pyplot as plt
 # This will trigger the global model loading automatically
 import gradio_app as ga
 
-# Hugging Face ZeroGPU requires this import
-import spaces
 app = FastAPI(title="Neural Network Calculation Studio")
 
 app.add_middleware(
@@ -76,7 +74,6 @@ async def get_metrics():
     }
 
 @app.post("/predict")
-@spaces.GPU
 def predict(data: SketchData):
     try:
         # Decode base64 image
