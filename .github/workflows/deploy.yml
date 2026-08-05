@@ -20,5 +20,4 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # TODO: Replace YOUR_USERNAME and YOUR_SPACE_NAME with your actual Hugging Face details
-          git push --force https://user:$HF_TOKEN@huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME main
+          git push --force https://user:$HF_TOKEN@huggingface.co/spaces/Manoj8179/neural-calc main
