@@ -2,7 +2,6 @@ import os
 import sys
 import json
 import base64
-import spaces
 
 if sys.platform == "win32":
     try:
