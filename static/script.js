@@ -1,3 +1,5 @@
+import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
 document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("sketchpad");
     const ctx = canvas.getContext("2d");
@@ -115,62 +117,43 @@ document.addEventListener("DOMContentLoaded", () => {
         statusLog.className = "status-box";
 
         try {
-            const response = await fetch("/predict", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ image_base64: base64Image })
-            });
+            // Connect to Hugging Face ZeroGPU Gradio App
+            const hf_client = await client("Manoj8179/Neural-Cal");
+            
+            // Send the canvas image to the /predict endpoint (which triggers master_execution_flow)
+            const result = await hf_client.predict("/predict", [
+                { "background": null, "composite": base64Image, "layers": [] }
+            ]);
 
-            const data = await response.json();
+            const data = {
+                svg: result.data[0],
+                status: result.data[3]
+            };
 
-            if (!response.ok) {
-                throw new Error(data.error || "An unknown error occurred.");
+            // Display result
+            svgContainer.innerHTML = data.svg;
+            statusLog.innerText = data.status;
+            statusLog.style.display = "block";
+            
+            // Play Audio via Web Speech API (Optional parsing of status)
+            try {
+                const phrase = data.status.split("\\n")[1];
+                if (phrase) {
+                    const utterance = new SpeechSynthesisUtterance(phrase);
+                    utterance.rate = 1.0;
+                    window.speechSynthesis.speak(utterance);
+                }
+            } catch (e) {
+                console.log("Audio synthesis not supported or blocked by browser.");
             }
 
-            // Step 1: Vision Propagation
-            svgContainer.innerHTML = data.svgs[0];
-            statusLog.innerText = `⏳ Step 1: Evaluating character strokes for formula '${data.equation}'...`;
-            statusLog.style.display = "block";
-
-            // Force reflow for animation
-            void svgContainer.offsetWidth;
-
-            setTimeout(() => {
-                // Step 2: Bridge Activation
-                svgContainer.innerHTML = data.svgs[1];
-                statusLog.innerText = `⚡ Step 2: Translating tokens... Pushing '${data.equation}' onto reasoning channels...`;
-                
-                void svgContainer.offsetWidth;
-
-                setTimeout(() => {
-                    // Step 3: Math Reasoner Complete
-                    svgContainer.innerHTML = data.svgs[2];
-                    statusLog.innerText = `🎯 NEURAL MATHEMATICAL PIPELINE SUCCESS:\nParsed Formula: ${data.equation}\nCalculated Prediction Result: [${data.result}]\nTotal Segmented Neural Tokens: ${data.tokens.length}`;
-                    
-                    void svgContainer.offsetWidth;
-
-                    // Play Audio via Web Speech API
-                    try {
-                        const phrase = `The calculated equation result for ${data.equation} is ${data.result}`;
-                        const utterance = new SpeechSynthesisUtterance(phrase);
-                        utterance.rate = 1.0;
-                        window.speechSynthesis.speak(utterance);
-                    } catch (e) {
-                        console.log("Audio synthesis not supported or blocked by browser.");
-                    }
-
-                    computeBtn.disabled = false;
-                    computeBtn.innerText = "Compute Formula 🚀";
-                }, 1000);
-            }, 1200);
-
+            computeBtn.disabled = false;
+            computeBtn.innerText = "Compute Formula 🚀";
         } catch (error) {
-            svgContainer.innerHTML = '<div class="empty-state" style="color: #ef4444;">Pipeline Error</div>';
-            statusLog.innerText = error.message;
-            statusLog.className = "status-box error";
+            console.error("Error computing formula:", error);
+            statusLog.innerText = `❌ Error: ${error.message}`;
             statusLog.style.display = "block";
+            statusLog.className = "status-box error";
             computeBtn.disabled = false;
             computeBtn.innerText = "Compute Formula 🚀";
         }
