@@ -193,12 +193,21 @@ def build_and_train_vision_nn():
     x = tf.keras.layers.Dropout(0.35)(x)
     outputs = tf.keras.layers.Dense(15, activation='softmax', name="Vision_Output_Classes")(x)
     
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    
     model_path = "vision_model.h5"
     history_path = "vision_history.json"
 
     if os.path.exists(model_path):
-        print(f"Instant Load: Loading pre-trained Vision CNN from {model_path}.")
-        model = tf.keras.models.load_model(model_path)
+        print(f"Instant Load: Loading pre-trained Vision CNN weights from {model_path}.")
+        try:
+            model.load_weights(model_path)
+        except Exception as e:
+            print(f"Failed to load weights natively, attempting with compile=False. Error: {e}")
+            model = tf.keras.models.load_model(model_path, compile=False)
+            
+        # We need to compile the model to evaluate it
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0005), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
         train_loss, train_acc = model.evaluate(x_train, y_train, verbose=0)
         test_loss, test_acc = model.evaluate(x_test, y_test_raw, verbose=0)
         print("\n--- TUNED VISION CNN PRE-TRAINED LOAD REPORT ---")
@@ -228,8 +237,7 @@ def build_and_train_vision_nn():
             with open(history_path, 'w') as f:
                 json.dump(hist_dict, f)
             return model, train_acc * 100, test_acc * 100, x_test_mnist, y_test_raw, x_test_raw, hist_dict
-        
-    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
     
     tuned_optimizer = tf.keras.optimizers.Adam(learning_rate=0.0005)
     model.compile(optimizer=tuned_optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])

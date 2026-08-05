@@ -49,9 +49,24 @@ def build_and_train_math_nn():
     model_path = "math_model.h5"
     history_path = "math_history.json"
 
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=(3,)),
+        tf.keras.layers.Embedding(input_dim=15, output_dim=32),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(256, activation='relu'),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(101, activation='softmax')
+    ])
+
     if os.path.exists(model_path):
-        print(f"⚡ Instant Load: Loading pre-trained Math NN from {model_path}...")
-        model = tf.keras.models.load_model(model_path)
+        print(f"⚡ Instant Load: Loading pre-trained Math NN weights from {model_path}...")
+        try:
+            model.load_weights(model_path)
+        except Exception as e:
+            print(f"Failed to load weights natively, attempting with compile=False. Error: {e}")
+            model = tf.keras.models.load_model(model_path, compile=False)
+            
+        model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
         train_loss, train_acc = model.evaluate(x_train, y_train, verbose=0)
         test_loss, test_acc = model.evaluate(x_test, y_test, verbose=0)
         print("\n --- MATH LOGIC NN PRE-TRAINED LOAD REPORT ---")
@@ -80,15 +95,6 @@ def build_and_train_math_nn():
             with open(history_path, 'w') as f:
                 json.dump(hist_dict, f)
         return model, train_loss, test_loss, train_acc * 100, test_acc * 100, hist_dict
-        
-    model = tf.keras.Sequential([
-        tf.keras.layers.Input(shape=(3,)),
-        tf.keras.layers.Embedding(input_dim=15, output_dim=32),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(256, activation='relu'),
-        tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dense(101, activation='softmax')
-    ])
     
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     history = model.fit(x_train, y_train, epochs=3, batch_size=64, validation_data=(x_test, y_test), verbose=1)
