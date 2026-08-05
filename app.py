@@ -15,6 +15,5 @@ dummy_demo = gr.Interface(fn=gpu_bypass, inputs="text", outputs="text")
 # Mount the dummy app to satisfy the orchestrator, and export the FastAPI app as `app`!
 app = gr.mount_gradio_app(custom_app, dummy_demo, path="/gpu_bypass")
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=7860, reload=False)
+import uvicorn
+uvicorn.run(app, host="0.0.0.0", port=7860, reload=False)
