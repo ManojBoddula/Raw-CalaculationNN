@@ -458,7 +458,6 @@ def evaluate_math_expression(expr_str):
         return int(running_result)
     return running_result
 
-@spaces.GPU
 def master_execution_flow(sketch):
     matrices, gray_canvas = segment_and_preprocess_expression(sketch)
     
