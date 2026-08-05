@@ -77,7 +77,7 @@ async def get_metrics():
 
 @app.post("/predict")
 @spaces.GPU
-async def predict(data: SketchData):
+def predict(data: SketchData):
     try:
         # Decode base64 image
         header, encoded = data.image_base64.split(",", 1)
