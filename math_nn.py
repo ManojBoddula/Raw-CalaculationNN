@@ -46,7 +46,7 @@ def build_and_train_math_nn():
     x_train, x_test = x_all[:split_idx], x_all[split_idx:]
     y_train, y_test = y_all[:split_idx], y_all[split_idx:]
     
-    model_path = "math_model.keras"
+    model_path = "math_model.h5"
     history_path = "math_history.json"
 
     if os.path.exists(model_path):

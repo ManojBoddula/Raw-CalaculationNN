@@ -193,7 +193,7 @@ def build_and_train_vision_nn():
     x = tf.keras.layers.Dropout(0.35)(x)
     outputs = tf.keras.layers.Dense(15, activation='softmax', name="Vision_Output_Classes")(x)
     
-    model_path = "vision_model.keras"
+    model_path = "vision_model.h5"
     history_path = "vision_history.json"
 
     if os.path.exists(model_path):
