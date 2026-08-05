@@ -7,7 +7,6 @@ sdk: gradio
 app_file: app.py
 pinned: false
 license: mit
-hardware: cpu-basic
 short_description: Draw math on a canvas; raw neural networks solve it.
 ---
 
