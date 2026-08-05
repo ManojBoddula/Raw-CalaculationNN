@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Studio</title>
+    <link rel="stylesheet" href="./style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-glow"></div>
+    <div class="container">
+        <header>
+            <h1>🎨 Deep Learning Alphanumeric Calculator</h1>
+            <p>End-to-End Custom Vision & Math Reasoning Neural Networks</p>
+        </header>
+
+        <div class="metrics-dashboard">
+            <div class="metric-card glass">
+                <h3>📊 Vision Network Metrics</h3>
+                <div class="metric-stats">
+                    <div class="stat"><span class="label">Train Acc:</span> <span class="value" id="v-train-acc">--</span></div>
+                    <div class="stat"><span class="label">Test Acc:</span> <span class="value" id="v-test-acc">--</span></div>
+                </div>
+                <img id="vision-plot" src="" alt="Vision Metrics Plot" style="display:none; width:100%; border-radius: 8px; margin-top: 10px;">
+            </div>
+            
+            <div class="metric-card glass">
+                <h3>🧮 Math Reasoner Metrics</h3>
+                <div class="metric-stats">
+                    <div class="stat"><span class="label">Train Loss:</span> <span class="value" id="m-train-loss">--</span></div>
+                    <div class="stat"><span class="label">Test Loss:</span> <span class="value" id="m-test-loss">--</span></div>
+                </div>
+                <img id="math-plot" src="" alt="Math Metrics Plot" style="display:none; width:100%; border-radius: 8px; margin-top: 10px;">
+            </div>
+        </div>
+
+        <div class="main-workspace glass">
+            <div class="canvas-section">
+                <h2>🖌️ Draw Equation</h2>
+                <p class="subtitle">Write clearly separated tokens from left to right (e.g. 22+22, 100-45)</p>
+                <div class="canvas-container">
+                    <canvas id="sketchpad" width="800" height="300"></canvas>
+                </div>
+                <div class="controls">
+                    <button id="clear-btn" class="btn secondary">Clear Canvas</button>
+                    <button id="compute-btn" class="btn primary">Compute Formula 🚀</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-workspace glass">
+            <h2>🧠 Dynamic Network Architecture</h2>
+            <div id="svg-container">
+                <div class="empty-state">Draw an equation above and click compute.</div>
+            </div>
+            
+            <div id="status-log" class="status-box" style="display:none;"></div>
+        </div>
+    </div>
+    
+    <script type="module" src="./script.js"></script>
+</body>
+</html>
