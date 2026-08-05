@@ -3,7 +3,7 @@ title: Neural Cal
 emoji: 🚀
 colorFrom: blue
 colorTo: red
-sdk: docker
+sdk: gradio
 app_file: app.py
 pinned: false
 license: mit
