@@ -24,9 +24,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import gradio as gr
+
 # Ensure static directory exists
 os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Mount the old Gradio UI at /gradio so Hugging Face orchestrator detects a valid Gradio app!
+app = gr.mount_gradio_app(app, ga.demo, path="/gradio")
 
 class SketchData(BaseModel):
     image_base64: str
@@ -139,7 +144,3 @@ def predict(data: SketchData):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=7860, reload=False)
