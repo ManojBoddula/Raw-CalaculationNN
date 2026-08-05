@@ -83,6 +83,17 @@ document.addEventListener("DOMContentLoaded", () => {
         statusLog.style.display = "none";
     });
 
+    // Fetch Metrics on Load dynamically from Hugging Face Backend
+    client("Manoj8179/Neural-Cal").then(hf_client => {
+        hf_client.predict("/get_metrics").then(result => {
+            const data = result.data[0];
+            document.getElementById("v-train-acc").innerText = data.v_train_acc;
+            document.getElementById("v-test-acc").innerText = data.v_test_acc;
+            document.getElementById("m-train-loss").innerText = data.m_train_loss;
+            document.getElementById("m-test-loss").innerText = data.m_test_loss;
+        }).catch(err => console.error("Error fetching metrics from HF API:", err));
+    });
+
     // Compute Button
     computeBtn.addEventListener("click", async () => {
         const base64Image = canvas.toDataURL("image/png");

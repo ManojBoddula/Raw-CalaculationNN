@@ -598,5 +598,17 @@ with gr.Blocks(title="Neural Network Calculation Studio") as demo:
         outputs=[live_graph_html, token_gallery, out_img2, out_status]
     )
 
+    def get_metrics_api():
+        return {
+            "v_train_acc": f"{v_train_acc:.2f}%",
+            "v_test_acc": f"{v_test_acc:.2f}%",
+            "m_train_loss": f"{m_train_loss:.4f}",
+            "m_test_loss": f"{m_test_loss:.4f}"
+        }
+    
+    hidden_metrics_btn = gr.Button("Get Metrics", visible=False)
+    hidden_metrics_out = gr.JSON(visible=False)
+    hidden_metrics_btn.click(fn=get_metrics_api, inputs=[], outputs=[hidden_metrics_out], api_name="get_metrics")
+
 if __name__ == "__main__":
     demo.launch(css=css_styling)
