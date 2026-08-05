@@ -105,12 +105,16 @@ document.addEventListener("DOMContentLoaded", () => {
         statusLog.className = "status-box";
 
         try {
+            // Convert Base64 data URL to an actual Blob object for Gradio
+            const res = await fetch(base64Image);
+            const blob = await res.blob();
+
             // Connect to Hugging Face ZeroGPU Gradio App
             const hf_client = await client("Manoj8179/Neural-Cal");
             
             // Send the canvas image to the /master_execution_flow endpoint
             const result = await hf_client.predict("/master_execution_flow", {
-                sketch: { "background": null, "composite": handle_file(base64Image), "layers": [] }
+                sketch: { "background": null, "composite": handle_file(blob), "layers": [] }
             });
 
             const data = {
