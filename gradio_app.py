@@ -1,5 +1,8 @@
 import os
 import sys
+import json
+import base64
+import spaces
 
 if sys.platform == "win32":
     try:
@@ -455,6 +458,7 @@ def evaluate_math_expression(expr_str):
         return int(running_result)
     return running_result
 
+@spaces.GPU
 def master_execution_flow(sketch):
     matrices, gray_canvas = segment_and_preprocess_expression(sketch)
     
