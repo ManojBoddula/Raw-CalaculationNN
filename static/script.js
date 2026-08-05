@@ -120,8 +120,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // Connect to Hugging Face ZeroGPU Gradio App
             const hf_client = await client("Manoj8179/Neural-Cal");
             
-            // Send the canvas image to the /predict endpoint (which triggers master_execution_flow)
-            const result = await hf_client.predict("/predict", [
+            // Send the canvas image to the /master_execution_flow endpoint
+            const result = await hf_client.predict("/master_execution_flow", [
                 { "background": null, "composite": base64Image, "layers": [] }
             ]);
 
