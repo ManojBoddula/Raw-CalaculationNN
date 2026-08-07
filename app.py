@@ -11,6 +11,19 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+# Suppress harmless asyncio EventLoop teardown errors in Gradio 6.x logs
+try:
+    import asyncio.selector_events
+    _orig_del = asyncio.selector_events.BaseSelectorEventLoop.__del__
+    def _safe_del(self):
+        try:
+            _orig_del(self)
+        except Exception:
+            pass
+    asyncio.selector_events.BaseSelectorEventLoop.__del__ = _safe_del
+except Exception:
+    pass
+
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 os.environ['MPLBACKEND'] = 'Agg'
