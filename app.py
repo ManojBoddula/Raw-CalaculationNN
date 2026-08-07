@@ -598,6 +598,7 @@ with gr.Blocks(title="Neural Network Calculation Studio") as demo:
         outputs=[live_graph_html, token_gallery, out_img2, out_status]
     )
 
+    @spaces.GPU
     def get_metrics_api():
         return {
             "v_train_acc": f"{v_train_acc:.2f}%",
