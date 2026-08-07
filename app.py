@@ -539,11 +539,7 @@ def master_execution_flow(sketch):
     except Exception as e:
         print(f"Audio system exception warning: {e}")
 
-css_styling = """
-.sketchpad canvas, .image-editor canvas {
-    min-height: 480px !important;
-}
-"""
+css_styling = ""
 
 with gr.Blocks(title="Neural Network Calculation Studio") as demo:
     gr.Markdown("# 🎨 End-to-End Deep Learning Alphanumeric Calculator")
