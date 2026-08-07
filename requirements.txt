@@ -1,6 +1,6 @@
 tensorflow>=2.16.1
 numpy
-gradio
+gradio<5.0.0
 matplotlib
 Pillow
 scipy
