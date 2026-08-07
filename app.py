@@ -581,7 +581,6 @@ with gr.Blocks(title="Neural Network Calculation Studio") as demo:
                 type="numpy", 
                 layers=False,
                 height=480,
-                canvas_size=(1100, 480),
                 brush=gr.Brush(default_size=5)
             )
             analyze_btn = gr.Button("Compute Alphanumeric Formula Sequence 🚀", variant="primary")
