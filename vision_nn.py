@@ -178,10 +178,13 @@ def build_and_train_vision_nn():
         # Load weights into native architecture to bypass Keras 3 deserialization bugs
         model.load_weights(model_path)
         hist_dict = {}
+        train_acc, test_acc = 0, 0
         if os.path.exists(history_path):
             with open(history_path, 'r') as f:
                 hist_dict = json.load(f)
-        return model, 0, 0, None, None, None, hist_dict
+            train_acc = hist_dict.get('accuracy', [0])[-1] * 100
+            test_acc = hist_dict.get('val_accuracy', [0])[-1] * 100
+        return model, train_acc, test_acc, None, None, None, hist_dict
         
     (x_train_raw, y_train_raw), (x_test_raw, y_test_raw) = tf.keras.datasets.mnist.load_data()
     

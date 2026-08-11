@@ -60,10 +60,15 @@ def build_and_train_math_nn():
         # Load weights into native architecture to bypass Keras 3 deserialization bugs
         model.load_weights(model_path)
         hist_dict = {}
+        train_loss, test_loss, train_acc, test_acc = 0, 0, 0, 0
         if os.path.exists(history_path):
             with open(history_path, 'r') as f:
                 hist_dict = json.load(f)
-        return model, 0, 0, 0, 0, hist_dict
+            train_loss = hist_dict.get('loss', [0])[-1]
+            test_loss = hist_dict.get('val_loss', [0])[-1]
+            train_acc = hist_dict.get('accuracy', [0])[-1] * 100
+            test_acc = hist_dict.get('val_accuracy', [0])[-1] * 100
+        return model, train_loss, test_loss, train_acc, test_acc, hist_dict
 
     x_all, y_all = generate_math_dataset()
     split_idx = int(len(x_all) * 0.9)
