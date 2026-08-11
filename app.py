@@ -2,7 +2,12 @@ import os
 import sys
 import json
 import base64
-import spaces
+try:
+    import spaces
+    GPU_DECORATOR = spaces.GPU
+except ImportError:
+    def GPU_DECORATOR(func):
+        return func
 
 if sys.platform == "win32":
     try:
@@ -33,23 +38,14 @@ import random
 import time
 import numpy as np
 import tensorflow as tf
-import gradio as gr
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+import uvicorn
 import matplotlib.pyplot as plt  # type: ignore
 from PIL import Image
 from scipy.ndimage import center_of_mass
 import cv2  # type: ignore
-# Safe monkey patch to prevent Gradio ImageEditor 0-byte layer file preprocessor crashes
-try:
-    import gradio.components.image_editor as ie
-    _orig_convert = ie.ImageEditor.convert_and_format_image
-    def _safe_convert(self, file):
-        try:
-            return _orig_convert(self, file)
-        except Exception:
-            return None
-    ie.ImageEditor.convert_and_format_image = _safe_convert
-except Exception:
-    pass
 
 # Import custom frameworks safely
 from vision_nn import build_and_train_vision_nn, CHAR_MAP
@@ -471,14 +467,32 @@ def evaluate_math_expression(expr_str):
         return int(running_result)
     return running_result
 
-@spaces.GPU
-def master_execution_flow(sketch):
-    matrices, gray_canvas = segment_and_preprocess_expression(sketch)
+app = FastAPI(title="Neural Network Calculation Studio API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class PredictRequest(BaseModel):
+    image: str
+
+def image_to_base64(img_array):
+    if isinstance(img_array, np.ndarray):
+        img_array = Image.fromarray(img_array)
+    buffered = io.BytesIO()
+    img_array.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+@GPU_DECORATOR
+def process_sketch(sketch_array):
+    matrices, gray_canvas = segment_and_preprocess_expression(sketch_array)
     
     if len(matrices) < 3:
-        yield (gr.HTML(value="<div style='color:orange; padding:10px;'>⚠️ Write a clean equation with at least 3 character tokens separated from left to right (e.g., 22+22, 100-45, 1+1).</div>"), 
-               None, None, "⚠️ Sequence syntax count error.")
-        return
+        return {"error": "Write a clean equation with at least 3 character tokens separated from left to right (e.g., 22+22, 100-45, 1+1)."}
         
     prediction_tokens = []
     last_hidden_activations = None
@@ -495,32 +509,21 @@ def master_execution_flow(sketch):
     final_calculated_digit = evaluate_math_expression(equation_string)
     
     if final_calculated_digit is None:
-        yield (gr.HTML(value=f"<div style='color:orange; padding:10px;'>⚠️ Unable to compute math expression from parsed tokens: '{equation_string}'. Please draw digits and operator clearly.</div>"), 
-               None, None, f"⚠️ Expression evaluation error on: '{equation_string}'")
-        return
+        return {"error": f"Unable to compute math expression from parsed tokens: '{equation_string}'. Please draw digits and operator clearly."}
 
-    # STEP 1: VISION PROPAGATION
     svg_step1 = generate_complete_architecture_svg(prediction_tokens, last_hidden_activations, final_calculated_digit, render_stage=1)
-    yield svg_step1, None, None, f"⏳ Step 1: Evaluating character strokes for formula '{equation_string}'..."
-    time.sleep(1.2)
-    
-    # STEP 2: DATA BRIDGE ACTIVATION
     svg_step2 = generate_complete_architecture_svg(prediction_tokens, last_hidden_activations, final_calculated_digit, render_stage=2)
-    yield svg_step2, None, None, f"⚡ Step 2: Translating tokens... Pushing '{equation_string}' onto reasoning channels..."
-    time.sleep(0.8)
-    
-    # STEP 3: REASONING COMPLETED
     svg_step3 = generate_complete_architecture_svg(prediction_tokens, last_hidden_activations, final_calculated_digit, render_stage=3)
-    yield svg_step3, None, None, f"🔊 Step 3: Math Reasoner Network complete! Result: {final_calculated_digit}"
-    time.sleep(0.5)
     
-    # STEP 4: RESULT IMAGE & TELEMETRY GALLERY RENDERING
     token_gallery_items = []
     for idx, (mat, tok_idx) in enumerate(zip(matrices, prediction_tokens)):
         token_char = CHAR_MAP[tok_idx]
         mat_255 = (mat * 255).astype(np.uint8)
         pil_mat = Image.fromarray(mat_255).resize((112, 112), Image.Resampling.NEAREST)
-        token_gallery_items.append((np.array(pil_mat), f"Pos {idx+1}: '{token_char}' (Class {tok_idx})"))
+        token_gallery_items.append({
+            "image": image_to_base64(pil_mat),
+            "label": f"Pos {idx+1}: '{token_char}' (Class {tok_idx})"
+        })
 
     plt.figure(figsize=(6, 3))
     probs = [15, 25, 98, 30, 10]
@@ -531,93 +534,59 @@ def master_execution_flow(sketch):
     buf_chart = io.BytesIO()
     plt.savefig(buf_chart, format='png', bbox_inches='tight')
     buf_chart.seek(0)
-    softmax_chart_render = plt.imread(buf_chart)
+    softmax_chart_b64 = base64.b64encode(buf_chart.getvalue()).decode('utf-8')
     plt.close()
 
-    status_log = f"🎯 NEURAL MATHEMATICAL PIPELINE SUCCESS:\nParsed Formula: {equation_string}\nCalculated Prediction Result: [{final_calculated_digit}]\nTotal Segmented Neural Tokens: {len(prediction_tokens)}"
+    status_log = f"Parsed Formula: {equation_string}\\nResult: {final_calculated_digit}\\nTokens: {len(prediction_tokens)}"
     
-    yield svg_step3, token_gallery_items, softmax_chart_render, status_log
-    time.sleep(0.2)
-    
-    # 🎬 STEP 5: AUDIO VOICE SYNTHESIS HOOK
+    return {
+        "equation": equation_string,
+        "result": final_calculated_digit,
+        "svg_step1": svg_step1,
+        "svg_step2": svg_step2,
+        "svg_step3": svg_step3,
+        "gallery": token_gallery_items,
+        "chart": softmax_chart_b64,
+        "log": status_log
+    }
+
+@app.post("/predict")
+async def predict(req: PredictRequest):
     try:
-        import subprocess, os
-        phrase = f"The calculated equation result for {equation_string} is {final_calculated_digit}"
-        if os.name == 'nt':
-            powershell_cmd = f"Add-Type -AssemblyName System.Speech; $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer; $speak.Rate = 1; $speak.Speak('{phrase}')"
-            subprocess.Popen(["powershell", "-Command", powershell_cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if req.image.startswith('data:image'):
+            img_data = req.image.split(',')[1]
         else:
-            pyttsx_script = f"import pyttsx3; engine = pyttsx3.init(); engine.setProperty('rate', 130); engine.say('{phrase}'); engine.runAndWait()"
-            subprocess.Popen(["python", "-c", pyttsx_script], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            img_data = req.image
+            
+        img_bytes = base64.b64decode(img_data)
+        pil_img = Image.open(io.BytesIO(img_bytes)).convert('L')
+        img_array = np.array(pil_img)
+        
+        result = process_sketch(img_array)
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        return result
     except Exception as e:
-        print(f"Audio system exception warning: {e}")
+        import traceback
+        err_msg = str(e) + "\n" + traceback.format_exc()
+        raise HTTPException(status_code=500, detail=err_msg)
 
-css_styling = ""
-
-with gr.Blocks(title="Neural Network Calculation Studio") as demo:
-    gr.Markdown("# 🎨 End-to-End Deep Learning Alphanumeric Calculator")
-    
-    with gr.Row():
-        with gr.Column():
-            gr.Markdown("### 📊 Vision Network Performance Metrics")
-            with gr.Row():
-                gr.Textbox(value=f"{v_train_acc:.2f}%", label="Train Accuracy", interactive=False)
-                gr.Textbox(value=f"{v_test_acc:.2f}%", label="Test Accuracy", interactive=False)
-            gr.Image(value=vision_curve_img, label="Vision History Curve (Train vs Test Accuracy)", interactive=False)
-        with gr.Column():
-            gr.Markdown("### 🧮 Math Reasoning Network Metrics")
-            with gr.Row():
-                gr.Textbox(value=f"{m_train_loss:.4f}", label="Train Loss", interactive=False)
-                gr.Textbox(value=f"{m_test_loss:.4f}", label="Test Loss", interactive=False)
-            gr.Image(value=speech_curve_img, label="Math Decay Curve (Train vs Test Loss)", interactive=False)
-            
-    gr.HTML("<hr style='border: 1px solid #ddd; margin: 20px 0;'>")
-
-    with gr.Row():
-        with gr.Column():
-            gr.Markdown("### 🖌️ Live Hand Drawing Calculation Input (Expanded Write Area)")
-            input_canvas = gr.Sketchpad(
-                label="Write equation here clearly separated (e.g. 22+22 or 100-45)", 
-                type="numpy", 
-                layers=False,
-                height=480,
-                brush=gr.Brush(default_size=5)
-            )
-            analyze_btn = gr.Button("Compute Alphanumeric Formula Sequence 🚀", variant="primary")
-
-    gr.Markdown("## 🧠 Dynamic Layer-by-Layer Interconnected Synapse Map")
-    live_graph_html = gr.HTML(value='<div style="background:#0f172a; height:400px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#475569; font-family:sans-serif; font-size:12px;">Draw a basic equation expression on the sketchpad above and execute.</div>')
-
-    gr.Markdown("## 🔍 Deep Neural Network Processing & Telemetry")
-    with gr.Row():
-        with gr.Column():
-            gr.Markdown("### 📷 Stage 1: Vision CNN Character Segmentation Tokens")
-            token_gallery = gr.Gallery(label="Segmented Token Matrices (Left-to-Right Sliced)", columns=6, height=220)
-        with gr.Column():
-            gr.Markdown("### 📊 Stage 2: Layer Synapse Activation Density Chart")
-            out_img2 = gr.Image(label="Neural Pipeline Layer Activations")
-            
-    with gr.Row():
-        out_status = gr.Textbox(label="System Pipeline Execution Log & Audio Telemetry", lines=4)
-
-    analyze_btn.click(
-        fn=master_execution_flow, 
-        inputs=input_canvas, 
-        outputs=[live_graph_html, token_gallery, out_img2, out_status]
-    )
-
-    @spaces.GPU
-    def get_metrics_api():
+@app.get("/metrics")
+async def get_metrics():
+    try:
+        v_curve_uint8 = (vision_curve_img * 255).astype(np.uint8) if vision_curve_img.dtype == np.float32 else vision_curve_img
+        s_curve_uint8 = (speech_curve_img * 255).astype(np.uint8) if speech_curve_img.dtype == np.float32 else speech_curve_img
         return {
             "v_train_acc": f"{v_train_acc:.2f}%",
             "v_test_acc": f"{v_test_acc:.2f}%",
             "m_train_loss": f"{m_train_loss:.4f}",
-            "m_test_loss": f"{m_test_loss:.4f}"
+            "m_test_loss": f"{m_test_loss:.4f}",
+            "vision_curve": image_to_base64(v_curve_uint8),
+            "speech_curve": image_to_base64(s_curve_uint8)
         }
-    
-    hidden_metrics_btn = gr.Button("Get Metrics", visible=False)
-    hidden_metrics_out = gr.JSON(visible=False)
-    hidden_metrics_btn.click(fn=get_metrics_api, inputs=[], outputs=[hidden_metrics_out], api_name="get_metrics")
+    except Exception as e:
+        import traceback
+        return {"error": str(e), "trace": traceback.format_exc()}
 
 if __name__ == "__main__":
-    demo.launch(css=css_styling)
+    uvicorn.run("app:app", host="0.0.0.0", port=7860)

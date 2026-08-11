@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Calculation Studio</title>
+    <!-- Modern, clean font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for standard icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="logo">
+            <i class="fa-solid fa-layer-group"></i>
+            <h1>Neural Calculation Studio</h1>
+            <span class="badge">V2.0</span>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- Main Content -->
+        <main class="main-layout">
+            <!-- 1. Input -->
+            <section class="panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-pen"></i> Input Data</h2>
+                </div>
+                <div class="panel-content">
+                    <div class="canvas-wrapper">
+                        <div class="canvas-toolbar">
+                            <button id="tool-pen" class="tool-btn active" title="Pen"><i class="fa-solid fa-pen"></i></button>
+                            <button id="tool-eraser" class="tool-btn" title="Eraser"><i class="fa-solid fa-eraser"></i></button>
+                            <div class="divider"></div>
+                            <div class="color-picker">
+                                <button class="color-btn active" data-color="white" style="background: white; box-shadow: inset 0 0 0 1px #cbd5e1;"></button>
+                                <button class="color-btn" data-color="#fde047" style="background: #fde047; box-shadow: inset 0 0 0 1px #facc15;"></button>
+                                <button class="color-btn" data-color="#f9a8d4" style="background: #f9a8d4; box-shadow: inset 0 0 0 1px #f472b6;"></button>
+                                <button class="color-btn" data-color="#7dd3fc" style="background: #7dd3fc; box-shadow: inset 0 0 0 1px #38bdf8;"></button>
+                            </div>
+                        </div>
+                        <canvas id="drawing-canvas" width="600" height="337"></canvas>
+                        <div class="canvas-overlay hidden" id="loading-overlay">
+                            <div class="spinner"></div>
+                            <span id="loading-text" style="font-family: var(--font-mono); font-size: 0.75rem;">Processing tensor...</span>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button id="clear-btn" class="btn btn-secondary icon-btn" title="Clear Canvas">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                        <button id="analyze-btn" class="btn btn-primary">
+                            Run Inference <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Live Graph & Metrics (Now Below Sketch Pad) -->
+            <section class="panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-network-wired"></i> Architecture Pipeline</h2>
+                </div>
+                <div class="panel-content" style="padding-bottom: 0;">
+                    <div class="graph-container" id="svg-container">
+                        <div class="placeholder-text">
+                            Awaiting inference task.
+                        </div>
+                    </div>
+                    <div class="metrics-row">
+                        <div class="metric-card">
+                            <span class="metric-label">Vision Acc</span>
+                            <span class="metric-value" id="val-v-acc">--%</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Math Loss</span>
+                            <span class="metric-value" id="val-m-loss">--</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Results Section -->
+        <section class="panel results-panel hidden" id="results-section">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-server"></i> Inference Telemetry</h2>
+            </div>
+            <div class="panel-content">
+                <div class="results-grid">
+                    <div>
+                        <h3 class="section-title">Stage 1: Extracted Tensors</h3>
+                        <div class="gallery" id="token-gallery"></div>
+                    </div>
+                    <div>
+                        <h3 class="section-title">Stage 2: Layer Activations</h3>
+                        <div class="chart-wrapper">
+                            <img id="activation-chart" src="" alt="Activation Chart">
+                        </div>
+                    </div>
+                </div>
+                <div class="log-container">
+                    <h3 class="section-title">System Log</h3>
+                    <pre id="execution-log">Waiting...</pre>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
