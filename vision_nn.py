@@ -147,7 +147,20 @@ def generate_organic_char(char):
 import json
 
 def build_and_train_vision_nn():
+    model_path_h5 = "vision_model.h5"
+    model_path_keras = "vision_model.keras"
+    history_path = "vision_history.json"
     
+    if os.path.exists(model_path_keras) or os.path.exists(model_path_h5):
+        print("Production: Loading pre-trained Vision CNN weights directly...")
+        model_path = model_path_keras if os.path.exists(model_path_keras) else model_path_h5
+        model = tf.keras.models.load_model(model_path, compile=False)
+        hist_dict = {}
+        if os.path.exists(history_path):
+            with open(history_path, 'r') as f:
+                hist_dict = json.load(f)
+        return model, 0, 0, None, None, None, hist_dict
+        
     (x_train_raw, y_train_raw), (x_test_raw, y_test_raw) = tf.keras.datasets.mnist.load_data()
     
     x_train_mnist = x_train_raw.astype('float32') / 255.0

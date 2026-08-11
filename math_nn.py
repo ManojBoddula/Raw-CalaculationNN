@@ -41,6 +41,20 @@ import os
 import json
 
 def build_and_train_math_nn():
+    model_path_keras = "math_model.keras"
+    model_path_h5 = "math_model.h5"
+    history_path = "math_history.json"
+    
+    if os.path.exists(model_path_keras) or os.path.exists(model_path_h5):
+        print("Production: Loading pre-trained Math NN weights directly...")
+        model_path = model_path_keras if os.path.exists(model_path_keras) else model_path_h5
+        model = tf.keras.models.load_model(model_path, compile=False)
+        hist_dict = {}
+        if os.path.exists(history_path):
+            with open(history_path, 'r') as f:
+                hist_dict = json.load(f)
+        return model, 0, 0, 0, 0, hist_dict
+
     x_all, y_all = generate_math_dataset()
     split_idx = int(len(x_all) * 0.9)
     x_train, x_test = x_all[:split_idx], x_all[split_idx:]
