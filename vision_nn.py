@@ -151,10 +151,32 @@ def build_and_train_vision_nn():
     model_path_keras = "vision_model.keras"
     history_path = "vision_history.json"
     
+    inputs = tf.keras.layers.Input(shape=(28, 28, 1))
+    x = tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation='relu', padding='same')(inputs)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
+    
+    x = tf.keras.layers.Conv2D(64, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
+    
+    x = tf.keras.layers.Conv2D(128, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.25)(x)
+    
+    flatten = tf.keras.layers.Flatten(name="Input_Flatten")(x)
+    hidden1 = tf.keras.layers.Dense(512, activation='relu', name="Hidden_Layer_1")(flatten)
+    x = tf.keras.layers.BatchNormalization()(hidden1)
+    x = tf.keras.layers.Dropout(0.35)(x)
+    outputs = tf.keras.layers.Dense(15, activation='softmax', name="Vision_Output_Classes")(x)
+    
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    
     if os.path.exists(model_path_keras) or os.path.exists(model_path_h5):
-        print("Production: Loading pre-trained Vision CNN weights directly...")
-        model_path = model_path_keras if os.path.exists(model_path_keras) else model_path_h5
-        model = tf.keras.models.load_model(model_path, compile=False)
+        print("Production: Loading pre-trained Vision CNN weights natively...")
+        model_path = model_path_h5 if os.path.exists(model_path_h5) else model_path_keras
+        # Load weights into native architecture to bypass Keras 3 deserialization bugs
+        model.load_weights(model_path)
         hist_dict = {}
         if os.path.exists(history_path):
             with open(history_path, 'r') as f:
@@ -187,26 +209,7 @@ def build_and_train_vision_nn():
     x_train = np.expand_dims(x_train, axis=-1)
     x_test = np.expand_dims(x_test_mnist, axis=-1)
     
-    inputs = tf.keras.layers.Input(shape=(28, 28, 1))
-    x = tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation='relu', padding='same')(inputs)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
-    
-    x = tf.keras.layers.Conv2D(64, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
-    
-    x = tf.keras.layers.Conv2D(128, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Dropout(0.25)(x)
-    
-    flatten = tf.keras.layers.Flatten(name="Input_Flatten")(x)
-    hidden1 = tf.keras.layers.Dense(512, activation='relu', name="Hidden_Layer_1")(flatten)
-    x = tf.keras.layers.BatchNormalization()(hidden1)
-    x = tf.keras.layers.Dropout(0.35)(x)
-    outputs = tf.keras.layers.Dense(15, activation='softmax', name="Vision_Output_Classes")(x)
-    
-    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    # Architecture already defined at the top
     
     model_path = "vision_model.h5"
     history_path = "vision_history.json"

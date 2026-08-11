@@ -45,10 +45,20 @@ def build_and_train_math_nn():
     model_path_h5 = "math_model.h5"
     history_path = "math_history.json"
     
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=(3,)),
+        tf.keras.layers.Embedding(input_dim=15, output_dim=32),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(256, activation='relu'),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(101, activation='softmax')
+    ])
+    
     if os.path.exists(model_path_keras) or os.path.exists(model_path_h5):
-        print("Production: Loading pre-trained Math NN weights directly...")
-        model_path = model_path_keras if os.path.exists(model_path_keras) else model_path_h5
-        model = tf.keras.models.load_model(model_path, compile=False)
+        print("Production: Loading pre-trained Math NN weights natively...")
+        model_path = model_path_h5 if os.path.exists(model_path_h5) else model_path_keras
+        # Load weights into native architecture to bypass Keras 3 deserialization bugs
+        model.load_weights(model_path)
         hist_dict = {}
         if os.path.exists(history_path):
             with open(history_path, 'r') as f:
@@ -62,16 +72,7 @@ def build_and_train_math_nn():
     
     model_path = "math_model.h5"
     history_path = "math_history.json"
-
-    model = tf.keras.Sequential([
-        tf.keras.layers.Input(shape=(3,)),
-        tf.keras.layers.Embedding(input_dim=15, output_dim=32),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(256, activation='relu'),
-        tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dense(101, activation='softmax')
-    ])
-
+    # Architecture already defined at the top
     if os.path.exists(model_path):
         print(f"⚡ Instant Load: Loading pre-trained Math NN weights from {model_path}...")
         try:
