@@ -1,8 +1,5 @@
 ---
 title: Neural Cal
-emoji: 🚀
-colorFrom: blue
-colorTo: red
 sdk: gradio
 app_file: app.py
 pinned: false
@@ -14,20 +11,24 @@ short_description: Draw math on a canvas; raw neural networks solve it.
 
 An end-to-end, multi-modal machine learning pipeline that parses, reads, and calculates handwritten mathematical equations directly from a drawing canvas using custom-trained neural networks.
 
+## 🌐 Live Demo
+- **Frontend (UI):** [https://manojboddula.github.io/Raw-CalaculationNN/](https://manojboddula.github.io/Raw-CalaculationNN/) *(Connects to live API)*
+
+
 ## ✨ Features
 - **Custom Computer Vision:** Implements raw OpenCV contour mapping and bounding box extraction to parse handwritten strokes, completely bypassing off-the-shelf OCR tools.
 - **Dual Neural Network Architecture:** 
-  - **Vision CNN (Stage 1):** Extracts features from handwritten digits and operators (`+`, `-`, `*`) and converts them into tokens.
+  - **Vision CNN (Stage 1):** Extracts features from handwritten digits and operators (`+`, `-`, `*`, `/`, `%`) and converts them into tokens.
   - **Math Reasoner NN (Stage 2):** Takes the sequence of neural tokens and predicts the mathematical logic and final result.
 - **Explainable AI UI:** A custom-built, glassmorphism web interface that dynamically animates the hidden layer processing of the neural networks step-by-step.
 - **Web Speech Integration:** Automatically synthesizes the calculated result using native browser audio APIs.
-- **MLOps & CI/CD:** Fully containerized backend deployed via GitHub Actions to Hugging Face Spaces.
+- **Multi-Interface Support:** Includes both a custom HTML/CSS/JS frontend and a Python-native Gradio application interface.
 
 ## 🛠️ Technology Stack
 - **Backend:** FastAPI, Uvicorn, Python
 - **Machine Learning:** TensorFlow/Keras, OpenCV, NumPy
 - **Frontend:** HTML5 Canvas, Vanilla CSS (Glassmorphism), JavaScript
-- **MLOps:** Git LFS, GitHub Actions, Hugging Face Spaces
+- **MLOps:** Git LFS, GitHub Actions, Hugging Face Spaces, Render
 
 ## 🚀 How it Works
 1. **Draw:** The user draws an equation (e.g., `22 + 5`) on the frontend HTML5 Canvas.
@@ -52,12 +53,24 @@ An end-to-end, multi-modal machine learning pipeline that parses, reads, and cal
    ```bash
    pip install -r requirements.txt
    ```
-3. Start the server:
-   ```bash
-   python -m uvicorn app:app --host 0.0.0.0 --port 7860
-   ```
-5. Open your browser and navigate to `http://localhost:7860`.
 
-## 🧹 Recent Updates
-- Cleaned up the repository by removing redundant testing scripts (`test_terminal_nn.py`).
-- Removed local Git utility scripts (`fix_commits.sh`) to prepare for a clean production deployment.
+### Option A: Custom Glassmorphism UI (Recommended)
+This method runs the headless FastAPI backend and serves the custom HTML/JS frontend.
+1. Start the backend API server:
+   ```bash
+   python app.py
+   ```
+2. In a new terminal, serve the frontend on `localhost`:
+   ```bash
+   python -m http.server 8000
+   ```
+3. Open your browser and navigate to `http://localhost:8000`.
+
+### Option B: All-in-One Gradio UI
+This method runs a complete Gradio-based interface which includes the canvas and visualizations built natively in Python.
+1. Start the Gradio application:
+   ```bash
+   python gradio_app.py
+   ```
+2. Open your browser and navigate to `http://127.0.0.1:7860`.
+
