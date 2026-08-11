@@ -1,13 +1,7 @@
 import os
 import sys
-import json
 import base64
-try:
-    import spaces
-    GPU_DECORATOR = spaces.GPU
-except ImportError:
-    def GPU_DECORATOR(func):
-        return func
+import gradio as gr
 
 if sys.platform == "win32":
     try:
@@ -467,8 +461,9 @@ def evaluate_math_expression(expr_str):
         return int(running_result)
     return running_result
 
-app = FastAPI(title="Neural Network Calculation Studio API")
+app = FastAPI()
 
+# Add CORS middleware to allow cross-origin requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -487,7 +482,6 @@ def image_to_base64(img_array):
     img_array.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
-@GPU_DECORATOR
 def process_sketch(sketch_array):
     matrices, gray_canvas = segment_and_preprocess_expression(sketch_array)
     
@@ -589,4 +583,21 @@ async def get_metrics():
         return {"error": str(e), "trace": traceback.format_exc()}
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=7860)
+    import uvicorn
+    import gradio as gr
+    # Create a dummy Gradio interface so Hugging Face ZeroGPU doesn't crash
+    def wake_up():
+        return "Backend is awake and ready for API requests!"
+        
+    demo = gr.Interface(
+        fn=wake_up, 
+        inputs=None, 
+        outputs="text",
+        title="Neural Calculator Backend API",
+        description="This is the headless backend for the Neural Calculator. Use the GitHub Pages frontend."
+    )
+    
+    # Mount the FastAPI app onto the Gradio app
+    app = gr.mount_gradio_app(app, demo, path="/")
+    
+    uvicorn.run(app, host="0.0.0.0", port=7860)
