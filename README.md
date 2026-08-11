@@ -56,4 +56,8 @@ An end-to-end, multi-modal machine learning pipeline that parses, reads, and cal
    ```bash
    python -m uvicorn app:app --host 0.0.0.0 --port 7860
    ```
-4. Open your browser and navigate to `http://localhost:7860`.
+5. Open your browser and navigate to `http://localhost:7860`.
+
+## 🧹 Recent Updates
+- Cleaned up the repository by removing redundant testing scripts (`test_terminal_nn.py`).
+- Removed local Git utility scripts (`fix_commits.sh`) to prepare for a clean production deployment.
