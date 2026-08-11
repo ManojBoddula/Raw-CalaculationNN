@@ -136,15 +136,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsSection.classList.add('hidden');
         
         try {
-            // Get base API URL, assuming it runs on same host/port if local, or Hugging Face space URL
-            const hfSpaceUrl = 'https://manoj8179-neural-cal.hf.space';
-            const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                                ? 'http://127.0.0.1:7860/predict' 
-                                : hfSpaceUrl + '/predict';
-            // For local dev, hardcode to 7860 if needed: 'http://localhost:7860/predict'
-            const targetUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                                ? 'http://127.0.0.1:7860/predict' 
-                                : apiUrl;
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const renderUrl = 'https://raw-calaculationnn.onrender.com';
+            const targetUrl = isLocal ? 'http://127.0.0.1:7860/predict' : renderUrl + '/predict';
 
             const res = await fetch(targetUrl, {
                 method: 'POST',
@@ -172,11 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // We can also fetch metrics on load
     async function fetchMetrics() {
         try {
-            // Your Hugging Face Space backend URL
-            const hfSpaceUrl = 'https://manoj8179-neural-cal.hf.space';
-            const targetUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                                ? 'http://127.0.0.1:7860/metrics' 
-                                : hfSpaceUrl + '/metrics';
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const renderUrl = 'https://raw-calaculationnn.onrender.com';
+            
+            const targetUrl = isLocal ? 'http://127.0.0.1:7860/metrics' : renderUrl + '/metrics';
             
             const res = await fetch(targetUrl);
             const data = await res.json();
