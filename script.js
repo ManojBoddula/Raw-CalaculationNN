@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const renderUrl = 'https://raw-calaculationnn.onrender.com';
+            const renderUrl = 'https://raw-calaculationnn-1.onrender.com';
             const targetUrl = isLocal ? 'http://127.0.0.1:7860/predict' : renderUrl + '/predict';
 
             const res = await fetch(targetUrl, {
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchMetrics() {
         try {
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const renderUrl = 'https://raw-calaculationnn.onrender.com';
+            const renderUrl = 'https://raw-calaculationnn-1.onrender.com';
             
             const targetUrl = isLocal ? 'http://127.0.0.1:7860/metrics' : renderUrl + '/metrics';
             
