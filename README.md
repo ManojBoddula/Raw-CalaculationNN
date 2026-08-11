@@ -18,7 +18,7 @@ An end-to-end, multi-modal machine learning pipeline that parses, reads, and cal
 ## ✨ Features
 - **Custom Computer Vision:** Implements raw OpenCV contour mapping and bounding box extraction to parse handwritten strokes, completely bypassing off-the-shelf OCR tools.
 - **Dual Neural Network Architecture:** 
-  - **Vision CNN (Stage 1):** Extracts features from handwritten digits and operators (`+`, `-`, `*`, `/`, `%`) and converts them into tokens.
+  - **Vision CNN (Stage 1):** Extracts features from handwritten digits and operators (`+`, `-`, `*`) and converts them into tokens.
   - **Math Reasoner NN (Stage 2):** Takes the sequence of neural tokens and predicts the mathematical logic and final result.
 - **Explainable AI UI:** A custom-built, glassmorphism web interface that dynamically animates the hidden layer processing of the neural networks step-by-step.
 - **Web Speech Integration:** Automatically synthesizes the calculated result using native browser audio APIs.
