@@ -6,4 +6,5 @@ python-multipart
 matplotlib
 Pillow
 scipy
-opencv-python-headlessgradio
+opencv-python-headless
+gradio
